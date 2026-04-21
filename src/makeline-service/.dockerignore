@@ -1,8 +1,12 @@
-# Python
+# Python/Go/Rust/Node cache and test files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Go
+*.test
+*.out
 
 # Virtual environments
 venv/

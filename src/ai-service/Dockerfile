@@ -2,18 +2,22 @@
 FROM python:3.12.7-alpine
 
 # Set the working directory to /app
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 # Set the build argument for the app version number
 ARG APP_VERSION=0.1.0
 
 # Copy the requirements file into the container
-COPY requirements.txt .
-
 # Install the dependencies
+# Copy the rest of the application code into the container
+
+# Copy only requirements first for better layer caching
+COPY requirements.txt ./
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code into the container
+# Copy the rest of the application code
 COPY . .
 
 # Expose port 5001 for the FastAPI application
@@ -21,6 +25,11 @@ EXPOSE 5001
 
 # Set the environment variable for the app version number
 ENV APP_VERSION=$APP_VERSION
+
+# Start the FastAPI application
+
+# Change to non-root user
+USER appuser
 
 # Start the FastAPI application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5001"]

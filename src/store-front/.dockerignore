@@ -1,8 +1,5 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+# Node cache and test files
+node_modules/
 
 # Virtual environments
 venv/
@@ -10,7 +7,7 @@ venv/
 
 # Tests
 tests/
-*.test.py
+*.test.js
 
 # IDE/editor config
 .vscode/
