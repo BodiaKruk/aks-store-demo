@@ -13,11 +13,9 @@ RUN cargo build --release || true
 # Remove the .rs files created by cargo
 RUN rm src/*.rs
 # Copy the source files to the container
-ADD . ./
-# Remove the dummy target directory created by cargo
-RUN rm ./target/release/deps/virtual_worker*
-# Build the application
-RUN cargo build --release
+COPY . ./
+# Remove the dummy target directory created by cargo and build the application
+RUN rm ./target/release/deps/virtual_worker* && cargo build --release
 
 # Create a new stage and copy the binary from the builder stage
 FROM debian:bookworm-slim AS runner
@@ -28,8 +26,10 @@ WORKDIR /app
 ARG APP_VERSION=0.1.0
 
 
-# Install OpenSSL
-RUN apt-get update && apt-get install -y libssl-dev && rm -rf /var/lib/apt/lists/*
+# Install OpenSSL (pin version, use --no-install-recommends)
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends libssl-dev=1.1.1n-0+deb11u3 \
+	&& rm -rf /var/lib/apt/lists/*
 # Add non-root user for security
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 

@@ -11,7 +11,7 @@ WORKDIR /product-service
 COPY Cargo.toml Cargo.lock ./
 RUN cargo build --release || true
 # Copy the source files to the container
-ADD . ./
+COPY . ./
 
 
 # Build the application
@@ -27,7 +27,9 @@ ARG APP_VERSION=0.1.0
 
 
 # Not ideal but needed to execute health checks in docker-compose
-RUN apt-get update && apt-get install -y wget libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends wget=1.21-1+deb12u1 libssl-dev=1.1.1n-0+deb11u3 \
+	&& rm -rf /var/lib/apt/lists/*
 # Add non-root user for security
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
