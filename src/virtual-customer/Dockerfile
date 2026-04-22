@@ -26,9 +26,9 @@ WORKDIR /app
 ARG APP_VERSION=0.1.0
 
 
-# Install OpenSSL (pin version, use --no-install-recommends)
+# Install OpenSSL (use --no-install-recommends)
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends libssl-dev=1.1.1n-0+deb11u3 \
+	&& apt-get install -y --no-install-recommends libssl-dev \
 	&& rm -rf /var/lib/apt/lists/*
 # Add non-root user for security
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser

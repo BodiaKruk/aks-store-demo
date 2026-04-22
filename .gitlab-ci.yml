@@ -1,0 +1,129 @@
+stages:
+  - lint
+  - build
+  - test
+  - push
+  - scan
+  - deploy
+
+variables:
+  ACR_REGISTRY: "myaksacr.azurecr.io"
+  AKS_NAMESPACE: "dev"
+  HELM_RELEASE: "store-app"
+  IMAGE_TAG: "$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+  CHART_PATH: "charts/store-front"
+
+before_script:
+  - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+  - az acr login --name $ACR_REGISTRY
+  - az aks get-credentials --resource-group $AZURE_RESOURCE_GROUP --name $AKS_CLUSTER --overwrite-existing
+
+lint:
+  stage: lint
+  image: hadolint/hadolint:latest
+  script:
+    - hadolint src/*/Dockerfile
+    - yamllint charts/**/*.yaml
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t $ACR_REGISTRY/store-front:$IMAGE_TAG ./src/store-front
+    - docker build -t $ACR_REGISTRY/store-admin:$IMAGE_TAG ./src/store-admin
+    - docker build -t $ACR_REGISTRY/product-service:$IMAGE_TAG ./src/product-service
+    - docker build -t $ACR_REGISTRY/order-service:$IMAGE_TAG ./src/order-service
+    - docker build -t $ACR_REGISTRY/makeline-service:$IMAGE_TAG ./src/makeline-service
+    - docker build -t $ACR_REGISTRY/ai-service:$IMAGE_TAG ./src/ai-service
+    - docker build -t $ACR_REGISTRY/virtual-customer:$IMAGE_TAG ./src/virtual-customer
+    - docker build -t $ACR_REGISTRY/virtual-worker:$IMAGE_TAG ./src/virtual-worker
+
+test:
+  stage: test
+  image: node:20
+  script:
+    - npm ci --prefix src/store-front
+    - npm test --prefix src/store-front
+    # Додайте тести для інших сервісів (go test, cargo test тощо)
+
+push:
+  stage: push
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker push $ACR_REGISTRY/store-front:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/store-admin:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/product-service:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/order-service:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/makeline-service:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/ai-service:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/virtual-customer:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/virtual-worker:$IMAGE_TAG
+
+scan:
+  stage: scan
+  image: aquasec/trivy:latest
+  script:
+    - trivy image $ACR_REGISTRY/store-front:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+    - trivy image $ACR_REGISTRY/store-admin:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+    - trivy image $ACR_REGISTRY/product-service:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+    - trivy image $ACR_REGISTRY/order-service:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+    - trivy image $ACR_REGISTRY/makeline-service:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+    - trivy image $ACR_REGISTRY/ai-service:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+    - trivy image $ACR_REGISTRY/virtual-customer:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+    - trivy image $ACR_REGISTRY/virtual-worker:$IMAGE_TAG --exit-code 1 --severity CRITICAL
+
+# Автоматичний деплой у dev/staging
+.deploy_template: &deploy_template
+  stage: deploy
+  image: alpine/helm:3.14.0
+  script:
+    - helm upgrade --install $HELM_RELEASE $CHART_PATH \
+        --namespace $AKS_NAMESPACE --create-namespace \
+        --set image.repository=$ACR_REGISTRY/store-front \
+        --set image.tag=$IMAGE_TAG \
+        -f $CHART_PATH/values-$AKS_NAMESPACE.yaml
+
+deploy_dev:
+  <<: *deploy_template
+  environment:
+    name: dev
+    url: https://dev.myapp.com
+  variables:
+    AKS_NAMESPACE: "dev"
+  only:
+    - develop
+
+deploy_staging:
+  <<: *deploy_template
+  environment:
+    name: staging
+    url: https://staging.myapp.com
+  variables:
+    AKS_NAMESPACE: "staging"
+  only:
+    - staging
+
+# Деплой у production лише після approval
+.deploy_prod_template: &deploy_prod_template
+  stage: deploy
+  image: alpine/helm:3.14.0
+  script:
+    - helm upgrade --install $HELM_RELEASE $CHART_PATH \
+        --namespace prod --create-namespace \
+        --set image.repository=$ACR_REGISTRY/store-front \
+        --set image.tag=$CI_COMMIT_TAG \
+        -f $CHART_PATH/values-prod.yaml
+  when: manual
+  allow_failure: false
+
+deploy_prod:
+  <<: *deploy_prod_template
+  environment:
+    name: production
+    url: https://myapp.com
+  only:
+    - main
