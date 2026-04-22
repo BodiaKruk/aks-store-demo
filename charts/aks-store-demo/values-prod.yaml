@@ -1,0 +1,49 @@
+namespace: "prod"
+aiService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/ai-service"
+    tag: "latest"
+orderService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/order-service"
+    tag: "latest"
+makelineService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/makeline-service"
+    tag: "latest"
+productService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/product-service"
+    tag: "latest"
+storeFront:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/store-front"
+    tag: "latest"
+storeAdmin:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/store-admin"
+    tag: "latest"
+virtualCustomer:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/virtual-customer"
+    tag: "latest"
+virtualWorker:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/virtual-worker"
+    tag: "latest"
+
+useRabbitMQ: false
+useMongoDB: false
+
+rabbitmq:
+  host: "prod-rabbitmq-host"
+  port: 5672
+  username: "prod-rabbitmq-user"
+  password: "prod-rabbitmq-pass"
+
+mongodb:
+  host: "prod-mongodb-host"
+  port: 27017
+  username: "prod-mongodb-user"
+  password: "prod-mongodb-pass"
+  db: "orderdb"

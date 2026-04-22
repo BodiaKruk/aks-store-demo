@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aks-store-demo-ingress
+  namespace: dev
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: store-front.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: store-front
+                port:
+                  number: 80
+    - host: store-admin.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: store-admin
+                port:
+                  number: 80

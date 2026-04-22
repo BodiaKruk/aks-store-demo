@@ -1,0 +1,48 @@
+namespace: "staging"
+aiService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/ai-service"
+    tag: "latest"
+orderService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/order-service"
+    tag: "latest"
+useRabbitMQ: false
+useMongoDB: false
+
+rabbitmq:
+  host: "staging-rabbitmq-host"
+  port: 5672
+  username: "staging-rabbitmq-user"
+  password: "staging-rabbitmq-pass"
+
+mongodb:
+  host: "staging-mongodb-host"
+  port: 27017
+  username: "staging-mongodb-user"
+  password: "staging-mongodb-pass"
+  db: "orderdb"
+makelineService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/makeline-service"
+    tag: "latest"
+productService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/product-service"
+    tag: "latest"
+storeFront:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/store-front"
+    tag: "latest"
+storeAdmin:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/store-admin"
+    tag: "latest"
+virtualCustomer:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/virtual-customer"
+    tag: "latest"
+virtualWorker:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/virtual-worker"
+    tag: "latest"

@@ -6,16 +6,33 @@ replicaCount: 1
 
 namespace: "dev"
 
-useRabbitMQ: true # when true, local rabbitmq container will be used
-useMongoDB: true # when true, local mongodb container will be used
 
-useAzureAd: false # when true, Azure AD auth will be used for ai-service, order-service, and makeline-service
-managedIdentityName: "" # name of the Azure AD identity to use for the service account
+# External services configuration
+useRabbitMQ: false # external RabbitMQ, do not deploy in cluster
+useMongoDB: false  # external MongoDB, do not deploy in cluster
+
+# External RabbitMQ connection
+rabbitmq:
+  host: "dev-rabbit-host"
+  port: 5672
+  username: "dev-user"
+  password: "dev-pass"
+
+# External MongoDB connection
+mongodb:
+  host: "dev-mongo-host"
+  port: 27017
+  username: "dev-user"
+  password: "dev-pass"
+  db: "orderdb-dev"
+
+useAzureAd: true # when true, Azure AD auth will be used for ai-service, order-service, and makeline-service
+managedIdentityName: "azurekeyvaultsecretsprovider-dev-aks-cluster" # name of the Azure AD identity to use for the service account
 managedIdentityClientId: "" # client ID of the managed identity to use for the service account
 
 aiService:
   # Specifies whether a ai-service deployment and service should be created
-  create: false
+  create: true
   modelDeploymentName: ""
   openAiEndpoint: ""
   openAiKey: ""
@@ -25,67 +42,69 @@ aiService:
   openAiDalleModelName: ""
   azureOpenAiApiVersion: "2024-12-01-preview"
   image:
-    repository: "ghcr.io/azure-samples/aks-store-demo/ai-service"
-    tag: "" # defaults to Chart.AppVersion
+    repository: "nexazdtdevacr.azurecr.io/ai-service"
+    tag: "latest"
+
 
 orderService:
-  queueHost: "rabbitmq"
-  queuePort: "5672"
-  queueUsername: "username"
-  queuePassword: "password"
+  queueHost: "{{ .Values.rabbitmq.host }}"
+  queuePort: "{{ .Values.rabbitmq.port }}"
+  queueUsername: "{{ .Values.rabbitmq.username }}"
+  queuePassword: "{{ .Values.rabbitmq.password }}"
   queueName: "orders"
   queueTransport: ""
   image:
-    repository: "ghcr.io/azure-samples/aks-store-demo/order-service"
-    tag: "" # defaults to Chart.AppVersion
+    repository: "nexazdtdevacr.azurecr.io/order-service"
+    tag: "{{ .Values.image.tag }}"
+
 
 makelineService:
-  orderQueueUri: "amqp://rabbitmq:5672"
-  orderQueueUsername: "username"
-  orderQueuePassword: "password"
+  orderQueueUri: "amqp://{{ .Values.rabbitmq.host }}:{{ .Values.rabbitmq.port }}"
+  orderQueueUsername: "{{ .Values.rabbitmq.username }}"
+  orderQueuePassword: "{{ .Values.rabbitmq.password }}"
   orderQueueName: "orders"
-  orderQueueHost: ""
-  orderDBApi: "mongodb"
-  orderDBUri: "mongodb://mongodb:27017"
+  orderQueueHost: "{{ .Values.rabbitmq.host }}"
+  orderDBApi: "{{ .Values.mongodb.host }}"
+  orderDBUri: "mongodb://{{ .Values.mongodb.username }}:{{ .Values.mongodb.password }}@{{ .Values.mongodb.host }}:{{ .Values.mongodb.port }}/{{ .Values.mongodb.db }}"
   orderDBListConnectionStringsUrl: ""
-  orderDBName: "orderdb"
+  orderDBName: "{{ .Values.mongodb.db }}"
   orderDBCollectionName: "orders"
   orderDBContainerName: "orders"
-  orderDBUsername: ""
-  orderDBPassword: ""
+  orderDBUsername: "{{ .Values.mongodb.username }}"
+  orderDBPassword: "{{ .Values.mongodb.password }}"
   image:
-    repository: "ghcr.io/azure-samples/aks-store-demo/makeline-service"
-    tag: "" # defaults to Chart.AppVersion
+    repository: "nexazdtdevacr.azurecr.io/makeline-service"
+    tag: "{{ .Values.image.tag }}"
 
 productService:
   image:
     repository: "ghcr.io/azure-samples/aks-store-demo/product-service"
-    tag: "" # defaults to Chart.AppVersion
+    tag: "{{ .Values.image.tag }}"
 
 storeAdmin:
   image:
     repository: "ghcr.io/azure-samples/aks-store-demo/store-admin"
-    tag: "" # defaults to Chart.AppVersion
+    tag: "{{ .Values.image.tag }}"
   serviceType: LoadBalancer
 
 storeFront:
   image:
     repository: "ghcr.io/azure-samples/aks-store-demo/store-front"
-    tag: "" # defaults to Chart.AppVersion
+    tag: "{{ .Values.image.tag }}"
   serviceType: LoadBalancer
 
 virtualCustomer:
   create: true
   image:
     repository: "ghcr.io/azure-samples/aks-store-demo/virtual-customer"
-    tag: "" # defaults to Chart.AppVersion
+    tag: "{{ .Values.image.tag }}"
   ordersPerHour: 20
 
 virtualWorker:
   create: true
   image:
     repository: "ghcr.io/azure-samples/aks-store-demo/virtual-worker"
-    tag: "" # defaults to Chart.AppVersion
+    tag: "{{ .Values.image.tag }}"
   ordersPerHour: 10
 
 podAnnotations: {}

@@ -1,0 +1,55 @@
+# Key Vault integration
+keyvaultName: "devaks5vnl3avz"
+tenantId: "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+namespace: "dev"
+aiService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/ai-service"
+    tag: "latest"
+orderService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/order-service"
+    tag: "latest"
+makelineService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/makeline-service"
+    tag: "latest"
+productService:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/product-service"
+    tag: "latest"
+storeFront:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/store-front"
+    tag: "v3"
+storeAdmin:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/store-admin"
+    tag: "v3"
+virtualCustomer:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/virtual-customer"
+    tag: "latest"
+virtualWorker:
+  image:
+    repository: "nexazdtdevacr.azurecr.io/virtual-worker"
+    tag: "latest"
+
+useRabbitMQ: false
+useMongoDB: false
+
+rabbitmq:
+  host: "dev-rabbitmq-host"
+  port: 5672
+  username: "dev-rabbitmq-user"
+  password: "dev-rabbitmq-pass"
+
+mongodb:
+  host: "dev-mongodb-host"
+  port: 27017
+  username: "dev-mongodb-user"
+  password: "dev-mongodb-pass"
+  db: "orderdb"
+
+managedIdentityName: "azurekeyvaultsecretsprovider-dev-aks-cluster"
+useAzureAd: true

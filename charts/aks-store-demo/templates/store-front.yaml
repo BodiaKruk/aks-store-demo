@@ -17,6 +17,25 @@ spec:
       containers:
       - name: store-front
         image: {{ .Values.storeFront.image.repository }}:{{ .Values.storeFront.image.tag | default .Chart.AppVersion }}
+        env:
+        - name: RABBITMQ_HOST
+          value: "{{ .Values.rabbitmq.host }}"
+        - name: RABBITMQ_PORT
+          value: "{{ .Values.rabbitmq.port }}"
+        - name: RABBITMQ_USERNAME
+          value: "{{ .Values.rabbitmq.username }}"
+        - name: RABBITMQ_PASSWORD
+          value: "{{ .Values.rabbitmq.password }}"
+        - name: MONGODB_HOST
+          value: "{{ .Values.mongodb.host }}"
+        - name: MONGODB_PORT
+          value: "{{ .Values.mongodb.port }}"
+        - name: MONGODB_USERNAME
+          value: "{{ .Values.mongodb.username }}"
+        - name: MONGODB_PASSWORD
+          value: "{{ .Values.mongodb.password }}"
+        - name: MONGODB_DB
+          value: "{{ .Values.mongodb.db }}"
         ports:
         - containerPort: 8080
           name: store-front

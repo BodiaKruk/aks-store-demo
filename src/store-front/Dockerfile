@@ -42,8 +42,12 @@ COPY nginx.conf /etc/nginx/conf.d/nginx.conf.template
 # Update the nginx configuration to use the app version number
 # and Copy the nginx configuration template to the container
 RUN envsubst "${APP_VERSION}" < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf
-# Change to non-root user
-USER appuser
+USER root
+RUN mkdir -p /var/cache/nginx/client_temp \
+    && chmod -R 777 /var/cache/nginx \
+    && chown -R nginx:nginx /var/cache/nginx \
+    && chown -R nginx:nginx /run
+USER nginx
 
 # Start the app
 CMD ["nginx", "-g", "daemon off;"]

@@ -52,12 +52,16 @@ spec:
         {{- end }}
     spec:
       {{- if eq .Values.useAzureAd true }}
-      serviceAccount: {{ .Values.managedIdentityName }}
+      serviceAccountName: {{ .Values.managedIdentityName }}
       {{- end }}
       nodeSelector:
         "kubernetes.io/os": linux
       containers:
       - name: makeline-service
+        volumeMounts:
+        - name: secrets-store-inline
+          mountPath: "/mnt/secrets"
+          readOnly: true
         image: {{ .Values.makelineService.image.repository }}:{{ .Values.makelineService.image.tag | default .Chart.AppVersion }}
         ports:
         - containerPort: 3001
@@ -95,6 +99,13 @@ spec:
           failureThreshold: 5
           initialDelaySeconds: 3
           periodSeconds: 3
+      volumes:
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: aks-store-demo-kv
 ---
 apiVersion: v1
 kind: Service
